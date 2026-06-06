@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目推进者 - 风险登记</title>
+<style>
+  :root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e4e6ef;--muted:#8b8fa3;--green:#34d399;--yellow:#fbbf24;--red:#f87171;--blue:#60a5fa;--purple:#a78bfa}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);padding:24px;min-height:100vh}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  .header h1{font-size:22px;font-weight:700}
+  .header .meta{font-size:13px;color:var(--muted)}
+  .section{margin-bottom:24px}
+  .section-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .section-title .icon{font-size:18px}
+  .overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+  .ov-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+  .ov-card .num{font-size:28px;font-weight:700}
+  .ov-card .lbl{font-size:11px;color:var(--muted);margin-top:4px}
+  .c-red{color:var(--red)}.c-yellow{color:var(--yellow)}.c-green{color:var(--green)}.c-blue{color:var(--blue)}.c-text{color:var(--text)}.c-muted{color:var(--muted)}
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+  .tag-red{background:rgba(248,113,113,.12);color:var(--red)}
+  .tag-yellow{background:rgba(251,191,36,.12);color:var(--yellow)}
+  .tag-green{background:rgba(52,211,153,.12);color:var(--green)}
+  .tag-blue{background:rgba(96,165,250,.12);color:var(--blue)}
+  .tag-muted{background:rgba(139,143,163,.12);color:var(--muted)}
+  .tag-purple{background:rgba(167,139,250,.12);color:var(--purple)}
+
+  /* Risk matrix */
+  .matrix-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px}
+  .matrix{display:grid;grid-template-columns:50px repeat(3,1fr);grid-template-rows:auto repeat(3,56px);gap:3px}
+  .matrix-label{display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);font-weight:600}
+  .matrix-cell{border-radius:6px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;padding:4px}
+  .matrix-cell.high{background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3)}
+  .matrix-cell.medium{background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3)}
+  .matrix-cell.low{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2)}
+  .dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:default}
+  .matrix-cell.high .dot{background:var(--red);color:#fff}
+  .matrix-cell.medium .dot{background:var(--yellow);color:#000}
+  .matrix-cell.low .dot{background:var(--green);color:#fff}
+  .matrix-axis{text-align:center;font-size:11px;color:var(--muted);margin-top:8px}
+
+  /* Risk cards */
+  .risk-list{display:flex;flex-direction:column;gap:12px}
+  .risk-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .risk-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer}
+  .risk-head:hover{background:rgba(96,165,250,.04)}
+  .risk-head .left{display:flex;align-items:center;gap:10px}
+  .risk-id{font-weight:700;color:var(--blue);font-size:14px}
+  .risk-body{padding:0 16px 16px;display:none}
+  .risk-body.open{display:block}
+  .risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px;font-size:12px}
+  .risk-kv{background:var(--bg);border-radius:6px;padding:8px 10px}
+  .risk-kv .k{color:var(--muted);font-size:11px;margin-bottom:2px}
+  .risk-desc{font-size:13px;line-height:1.6;margin-bottom:10px}
+  .risk-desc b{color:var(--muted);font-size:12px;font-weight:600;display:block;margin-bottom:4px}
+  .mit-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+  .mit-table th,.mit-table td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+  .mit-table th{color:var(--muted);font-weight:600;background:var(--bg);font-size:11px}
+
+  /* Closed */
+  .closed-list{display:flex;flex-direction:column;gap:6px}
+  .closed-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+
+  .empty{text-align:center;color:var(--muted);padding:24px;font-size:13px}
+  .footer{margin-top:32px;text-align:center;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>⚡ 风险登记</h1>
+    <div class="meta">项目：<span id="project">-</span> &nbsp;|&nbsp; 基线：<span id="baseline">-</span> &nbsp;|&nbsp; 更新：<span id="lastUpdated">-</span></div>
+  </div>
+</div>
+
+<div class="overview">
+  <div class="ov-card"><div class="num c-red" id="ovHigh">0</div><div class="lbl">🔴 高</div></div>
+  <div class="ov-card"><div class="num c-yellow" id="ovMed">0</div><div class="lbl">🟡 中</div></div>
+  <div class="ov-card"><div class="num c-green" id="ovLow">0</div><div class="lbl">🟢 低</div></div>
+  <div class="ov-card"><div class="num c-text" id="ovTotal">0</div><div class="lbl">合计</div></div>
+  <div class="ov-card"><div class="num c-muted" id="ovClosed">0</div><div class="lbl">已关闭</div></div>
+</div>
+
+<!-- Matrix -->
+<div class="section">
+  <div class="section-title"><span class="icon">🎯</span> 风险矩阵（可能性 × 影响）</div>
+  <div class="matrix-wrap">
+    <div class="matrix">
+      <div></div><div class="matrix-label">低影响</div><div class="matrix-label">中影响</div><div class="matrix-label">高影响</div>
+      <div class="matrix-label">高可能</div><div class="matrix-cell medium" id="mx-hl"></div><div class="matrix-cell high" id="mx-hm"></div><div class="matrix-cell high" id="mx-hh"></div>
+      <div class="matrix-label">中可能</div><div class="matrix-cell low" id="mx-ml"></div><div class="matrix-cell medium" id="mx-mm"></div><div class="matrix-cell high" id="mx-mh"></div>
+      <div class="matrix-label">低可能</div><div class="matrix-cell low" id="mx-ll"></div><div class="matrix-cell low" id="mx-lm"></div><div class="matrix-cell medium" id="mx-lh"></div>
+    </div>
+    <div class="matrix-axis">← 影响 →</div>
+  </div>
+</div>
+
+<!-- Open Risks -->
+<div class="section">
+  <div class="section-title"><span class="icon">📋</span> 活跃风险</div>
+  <div class="risk-list" id="riskList"><div class="empty">暂无活跃风险</div></div>
+</div>
+
+<!-- Closed Risks -->
+<div class="section">
+  <div class="section-title"><span class="icon">✅</span> 已关闭风险</div>
+  <div class="closed-list" id="closedList"><div class="empty">暂无已关闭风险</div></div>
+</div>
+
+<div class="footer">项目推进者 · 风险登记 · 持续更新</div>
+
+<script>
+const DATA = /*__DATA__*/null/*__END__*/;
+
+const PROB_MAP = {高:'h',中:'m',低:'l'};
+const IMP_MAP = {高:'h',中:'m',低:'l'};
+const CELL_IDS = {hl:'mx-hl',hm:'mx-hm',hh:'mx-hh',ml:'mx-ml',mm:'mx-mm',mh:'mx-mh',ll:'mx-ll',lm:'mx-lm',lh:'mx-lh'};
+
+function tag(cls,t){return '<span class="tag tag-'+cls+'">'+t+'</span>'}
+
+function render(d){
+  if(!d)return;
+  const r=d.risk_register||d;
+
+  document.getElementById('project').textContent=r.project||'-';
+  document.getElementById('baseline').textContent=r.baseline_version||'-';
+  document.getElementById('lastUpdated').textContent=r.last_updated||'-';
+
+  const risks=r.risks||[];
+  const closed=r.closed||[];
+  const counts={high:0,medium:0,low:0};
+  risks.forEach(x=>{if(counts.hasOwnProperty(x.level))counts[x.level]++});
+  document.getElementById('ovHigh').textContent=counts.high;
+  document.getElementById('ovMed').textContent=counts.medium;
+  document.getElementById('ovLow').textContent=counts.low;
+  document.getElementById('ovTotal').textContent=risks.length;
+  document.getElementById('ovClosed').textContent=closed.length;
+
+  // Matrix
+  const matrixDots={};
+  risks.filter(x=>x.status!=='closed').forEach(x=>{
+    const p=PROB_MAP[x.probability]||'m';
+    const i=IMP_MAP[x.impact]||'m';
+    const key=p+i;
+    if(!matrixDots[key])matrixDots[key]=[];
+    matrixDots[key].push(x.risk_id);
+  });
+  Object.entries(CELL_IDS).forEach(([k,id])=>{
+    const el=document.getElementById(id);
+    const ids=matrixDots[k]||[];
+    el.innerHTML=ids.map(rid=>'<div class="dot" title="'+rid+'">'+rid.replace('R-','')+'</div>').join('');
+  });
+
+  // Risk cards
+  const rl=document.getElementById('riskList');
+  const openRisks=risks.filter(x=>x.status!=='closed');
+  if(openRisks.length){
+    rl.innerHTML=openRisks.map(x=>{
+      const lvlCls={高:'red',中:'yellow',低:'green'}[x.level]||'muted';
+      const catCls={技术:'blue',进度:'yellow',资源:'purple',需求:'red',外部:'muted'}[x.category]||'muted';
+      const stCls={open:'red',mitigating:'yellow',closed:'green'}[x.status]||'muted';
+      const stText={open:'开放',mitigating:'缓解中',closed:'已关闭'}[x.status]||x.status;
+      let body='<div class="risk-grid">';
+      body+='<div class="risk-kv"><div class="k">类别</div>'+tag(catCls,x.category||'-')+'</div>';
+      body+='<div class="risk-kv"><div class="k">可能性</div>'+tag(lvlCls,x.probability||'-')+'</div>';
+      body+='<div class="risk-kv"><div class="k">影响</div>'+tag(lvlCls,x.impact||'-')+'</div>';
+      body+='<div class="risk-kv"><div class="k">等级</div>'+tag(lvlCls,x.level||'-')+'</div>';
+      body+='<div class="risk-kv"><div class="k">负责人</div>'+(x.owner||'-')+'</div>';
+      body+='<div class="risk-kv"><div class="k">里程碑</div>'+(x.milestone||'-')+'</div>';
+      body+='<div class="risk-kv"><div class="k">发现日期</div>'+(x.opened_at||'-')+'</div>';
+      body+='</div>';
+
+      body+='<div class="risk-desc"><b>描述</b>'+(x.description||'-')+'</div>';
+      body+='<div class="risk-desc"><b>影响范围</b>'+(x.impact_desc||'-')+'</div>';
+
+      if(x.mitigations&&x.mitigations.length){
+        body+='<b style="color:var(--muted);font-size:12px">缓解措施</b>';
+        body+='<table class="mit-table"><thead><tr><th>措施</th><th>负责人</th><th>截止</th><th>状态</th></tr></thead><tbody>';
+        x.mitigations.forEach(m=>{
+          const msCls={计划:'muted',执行中:'yellow',完成:'green'}[(m.status||'').replace(/📋|🔄|✅/,'')]||'muted';
+          body+='<tr><td>'+m.action+'</td><td>'+(m.owner||'-')+'</td><td>'+(m.due||'-')+'</td><td>'+tag(msCls,m.status||'-')+'</td></tr>';
+        });
+        body+='</tbody></table>';
+      }
+
+      if(x.contingency){
+        body+='<div class="risk-desc"><b>应急计划</b>'+x.contingency+'</div>';
+      }
+
+      return '<div class="risk-card"><div class="risk-head" onclick="this.nextElementSibling.classList.toggle(\'open\')"><div class="left"><span class="risk-id">'+x.risk_id+'</span><span>'+x.title+'</span></div><div>'+tag(lvlCls,x.level)+' '+tag(catCls,x.category)+' '+tag(stCls,stText)+'</div></div><div class="risk-body">'+body+'</div></div>';
+    }).join('');
+  }
+
+  // Closed
+  const cl=document.getElementById('closedList');
+  if(closed.length){
+    cl.innerHTML=closed.map(x=>
+      '<div class="closed-item"><div><span class="risk-id">'+x.risk_id+'</span> '+x.title+'</div><div style="color:var(--muted)">'+(x.closed_at||'-')+' · '+(x.close_reason||'-')+'</div></div>'
+    ).join('');
+  }
+}
+render(DATA);
+</script>
+</body>
+</html>

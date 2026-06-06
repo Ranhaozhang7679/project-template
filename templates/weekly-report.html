@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目推进者 - 周报</title>
+<style>
+  :root { --bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e4e6ef;--muted:#8b8fa3;--green:#34d399;--yellow:#fbbf24;--red:#f87171;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);padding:24px;min-height:100vh}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  .header h1{font-size:22px;font-weight:700}
+  .header .meta{font-size:13px;color:var(--muted)}
+  .badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600}
+  .badge-green{background:rgba(52,211,153,.15);color:var(--green)}
+  .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+  .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+  .summary{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;font-size:14px;line-height:1.6}
+  .section{margin-bottom:24px}
+  .section-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .section-title .icon{font-size:18px}
+
+  /* Stats row */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+  .stat-card .num{font-size:26px;font-weight:700}
+  .stat-card .lbl{font-size:11px;color:var(--muted);margin-top:4px}
+  .c-green{color:var(--green)}.c-red{color:var(--red)}.c-blue{color:var(--blue)}.c-yellow{color:var(--yellow)}.c-muted{color:var(--muted)}.c-text{color:var(--text)}
+  .stat-card .delta{font-size:11px;margin-top:2px}
+  .delta-up{color:var(--green)}.delta-down{color:var(--red)}.delta-flat{color:var(--muted)}
+
+  /* Tables */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:var(--card)}
+  tr:hover td{background:rgba(96,165,250,.04)}
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+  .tag-green{background:rgba(52,211,153,.12);color:var(--green)}
+  .tag-yellow{background:rgba(251,191,36,.12);color:var(--yellow)}
+  .tag-red{background:rgba(248,113,113,.12);color:var(--red)}
+  .tag-blue{background:rgba(96,165,250,.12);color:var(--blue)}
+  .tag-muted{background:rgba(139,143,163,.12);color:var(--muted)}
+  .ci-pass{color:var(--green)}.ci-fail{color:var(--red)}
+
+  /* Decision items */
+  .decision-list{display:flex;flex-direction:column;gap:8px}
+  .decision-item{background:var(--card);border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:12px 14px;font-size:13px}
+
+  .empty{text-align:center;color:var(--muted);padding:24px;font-size:13px}
+  .footer{margin-top:32px;text-align:center;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📰 项目周报</h1>
+    <div class="meta">报告编号：<span id="reportId">-</span> &nbsp;|&nbsp; 周期：<span id="weekRange">-</span> &nbsp;|&nbsp; 项目：<span id="projectName">-</span></div>
+  </div>
+  <div><span id="completionBadge" class="badge badge-green">完成率 -%</span></div>
+</div>
+
+<div class="summary" id="summaryText">—</div>
+
+<!-- Stats -->
+<div class="stats-row" id="statsRow">
+  <div class="stat-card"><div class="num c-text" id="sTotal">-</div><div class="lbl">总任务</div><div class="delta delta-flat" id="dTotal"></div></div>
+  <div class="stat-card"><div class="num c-green" id="sDone">-</div><div class="lbl">已完成</div><div class="delta delta-up" id="dDone"></div></div>
+  <div class="stat-card"><div class="num c-blue" id="sProgress">-</div><div class="lbl">进行中</div><div class="delta delta-flat" id="dProgress"></div></div>
+  <div class="stat-card"><div class="num c-red" id="sBlocked">-</div><div class="lbl">阻塞</div><div class="delta" id="dBlocked"></div></div>
+  <div class="stat-card"><div class="num c-yellow" id="sOverdue">-</div><div class="lbl">延期</div><div class="delta" id="dOverdue"></div></div>
+  <div class="stat-card"><div class="num c-muted" id="sPR">-</div><div class="lbl">开放 PR</div><div class="delta delta-flat" id="dPR"></div></div>
+</div>
+
+<!-- Completed -->
+<div class="section">
+  <div class="section-title"><span class="icon">✅</span> 本周完成</div>
+  <table id="completedTable"><thead><tr><th>Issue</th><th>标题</th><th>里程碑</th><th>负责人</th><th>备注</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="completedEmpty">本周无完成任务</div>
+</div>
+
+<!-- In Progress -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔄</span> 进行中</div>
+  <table id="progressTable"><thead><tr><th>Issue</th><th>标题</th><th>进度</th><th>阻碍</th><th>预计完成</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="progressEmpty">无进行中任务</div>
+</div>
+
+<!-- Risks & Blockers -->
+<div class="section">
+  <div class="section-title"><span class="icon">🚨</span> 风险与阻塞</div>
+  <table id="riskTable"><thead><tr><th>类型</th><th>项目</th><th>描述</th><th>影响</th><th>措施</th><th>负责人</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="riskEmpty">暂无风险 🎉</div>
+</div>
+
+<!-- PR Status -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔀</span> PR 状态</div>
+  <table id="prTable"><thead><tr><th>PR</th><th>标题</th><th>作者</th><th>CI</th><th>停滞</th><th>状态</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="prEmpty">无开放 PR</div>
+</div>
+
+<!-- Next Week -->
+<div class="section">
+  <div class="section-title"><span class="icon">⏭️</span> 下周计划</div>
+  <table id="nextTable"><thead><tr><th>优先级</th><th>任务</th><th>里程碑</th><th>负责人</th><th>目标</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="nextEmpty">待规划</div>
+</div>
+
+<!-- Decisions -->
+<div class="section">
+  <div class="section-title"><span class="icon">📢</span> 需要决策</div>
+  <div class="decision-list" id="decisionList"><div class="empty">暂无待决策事项</div></div>
+</div>
+
+<div class="footer">项目推进者 · 周报 · 自动生成</div>
+
+<script>
+const DATA = /*__DATA__*/null/*__END__*/;
+
+function deltaText(cur, prev, invert) {
+  if (prev == null || cur == null) return '';
+  const d = cur - prev;
+  if (d === 0) return { text: '—', cls: 'delta-flat' };
+  const sign = d > 0 ? '+' : '';
+  const positive = d > 0;
+  const good = invert ? !positive : positive;
+  return { text: sign + d, cls: good ? 'delta-up' : 'delta-down' };
+}
+
+function setDelta(id, d) {
+  const el = document.getElementById(id);
+  if (d && d.text) { el.textContent = d.text; el.className = 'delta ' + d.cls; }
+}
+
+function tag(cls, text) { return `<span class="tag tag-${cls}">${text}</span>`; }
+
+function render(d) {
+  if (!d) return;
+  const w = d.weekly_report || d;
+
+  // Header
+  document.getElementById('reportId').textContent = w.report_id || '-';
+  document.getElementById('weekRange').textContent = w.week || '-';
+  document.getElementById('projectName').textContent = w.project || '-';
+
+  const rate = w.completion_rate;
+  const badge = document.getElementById('completionBadge');
+  badge.textContent = `完成率 ${rate != null ? rate + '%' : '-'}`;
+  badge.className = 'badge ' + (rate == null ? 'badge-green' : rate >= 80 ? 'badge-green' : rate >= 50 ? 'badge-yellow' : 'badge-red');
+
+  // Summary
+  if (w.summary) document.getElementById('summaryText').textContent = w.summary;
+
+  // Stats
+  const s = w.stats || {};
+  const sp = w.stats_prev || {};
+  document.getElementById('sTotal').textContent = s.total ?? '-';
+  document.getElementById('sDone').textContent = s.done ?? '-';
+  document.getElementById('sProgress').textContent = s.in_progress ?? '-';
+  document.getElementById('sBlocked').textContent = s.blocked ?? '-';
+  document.getElementById('sOverdue').textContent = s.overdue ?? '-';
+  document.getElementById('sPR').textContent = s.open_pr ?? '-';
+  setDelta('dTotal', deltaText(s.total, sp.total));
+  setDelta('dDone', deltaText(s.done, sp.done));
+  setDelta('dProgress', deltaText(s.in_progress, sp.in_progress));
+  setDelta('dBlocked', deltaText(s.blocked, sp.blocked, true));
+  setDelta('dOverdue', deltaText(s.overdue, sp.overdue, true));
+  setDelta('dPR', deltaText(s.open_pr, sp.open_pr));
+
+  // Tables
+  function fillTable(tableId, emptyId, rows, renderFn) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    const empty = document.getElementById(emptyId);
+    if (rows && rows.length) {
+      tbody.innerHTML = rows.map(renderFn).join('');
+      empty.style.display = 'none';
+    } else {
+      tbody.innerHTML = '';
+      empty.style.display = '';
+    }
+  }
+
+  fillTable('completedTable', 'completedEmpty', w.completed, r =>
+    `<tr><td>${tag('blue', r.issue)}</td><td>${r.title}</td><td>${tag('muted', r.milestone||'-')}</td><td>${r.assignee||'-'}</td><td>${r.note||'-'}</td></tr>`);
+
+  fillTable('progressTable', 'progressEmpty', w.in_progress, r =>
+    `<tr><td>${tag('blue', r.issue)}</td><td>${r.title}</td><td>${r.progress||'-'}%</td><td>${r.blocker||'-'}</td><td>${r.due||'-'}</td></tr>`);
+
+  fillTable('riskTable', 'riskEmpty', w.risks, r => {
+    const tc = {阻塞:'red',延期:'yellow',风险:'blue'}[r.type]||'muted';
+    return `<tr><td>${tag(tc, r.type)}</td><td>${tag('blue', r.issue)}</td><td>${r.desc}</td><td>${r.impact||'-'}</td><td>${r.action||'-'}</td><td>${r.assignee||'-'}</td></tr>`;
+  });
+
+  fillTable('prTable', 'prEmpty', w.prs, r =>
+    `<tr><td>${tag('blue', r.pr)}</td><td>${r.title}</td><td>${r.author||'-'}</td><td class="${r.ci==='pass'?'ci-pass':'ci-fail'}">${r.ci==='pass'?'🟢':'🔴'}</td><td>${r.stale!=null?r.stale+'天':'-'}</td><td>${tag('muted', r.status||'-')}</td></tr>`);
+
+  fillTable('nextTable', 'nextEmpty', w.next_week, r => {
+    const pc = {P0:'red',P1:'yellow',P2:'blue',P3:'muted'}[r.priority]||'muted';
+    return `<tr><td>${tag(pc, r.priority)}</td><td>${r.task}</td><td>${tag('muted', r.milestone||'-')}</td><td>${r.assignee||'-'}</td><td>${r.goal||'-'}</td></tr>`;
+  });
+
+  // Decisions
+  const dl = document.getElementById('decisionList');
+  if (w.decisions && w.decisions.length) {
+    dl.innerHTML = w.decisions.map((d,i) => `<div class="decision-item">${i+1}. ${d}</div>`).join('');
+  }
+}
+
+render(DATA);
+</script>
+</body>
+</html>

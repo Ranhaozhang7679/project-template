@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目推进者 - 里程碑评审</title>
+<style>
+  :root { --bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e4e6ef;--muted:#8b8fa3;--green:#34d399;--yellow:#fbbf24;--red:#f87171;--blue:#60a5fa;--purple:#a78bfa;--cyan:#22d3ee; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);padding:24px;min-height:100vh}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  .header h1{font-size:22px;font-weight:700}
+  .header .meta{font-size:13px;color:var(--muted)}
+  .badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600}
+  .badge-green{background:rgba(52,211,153,.15);color:var(--green)}
+  .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+  .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+  .section{margin-bottom:24px}
+  .section-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .section-title .icon{font-size:18px}
+
+  /* Stats */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+  .stat-card .num{font-size:26px;font-weight:700}
+  .stat-card .lbl{font-size:11px;color:var(--muted);margin-top:4px}
+  .stat-card .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .c-green{color:var(--green)}.c-red{color:var(--red)}.c-blue{color:var(--blue)}.c-yellow{color:var(--yellow)}.c-text{color:var(--text)}
+
+  /* Progress ring */
+  .progress-ring-wrap{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+  .progress-ring{position:relative;width:100px;height:100px}
+  .progress-ring svg{transform:rotate(-90deg)}
+  .progress-ring .pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;font-weight:700}
+  .progress-ring-label{font-size:14px;line-height:1.6}
+  .progress-ring-label strong{font-size:16px}
+
+  /* Tables */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:var(--card)}
+  tr:hover td{background:rgba(96,165,250,.04)}
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+  .tag-green{background:rgba(52,211,153,.12);color:var(--green)}
+  .tag-red{background:rgba(248,113,113,.12);color:var(--red)}
+  .tag-yellow{background:rgba(251,191,36,.12);color:var(--yellow)}
+  .tag-blue{background:rgba(96,165,250,.12);color:var(--blue)}
+  .tag-muted{background:rgba(139,143,163,.12);color:var(--muted)}
+
+  /* Quality grid */
+  .quality-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .quality-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .quality-card .q-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .quality-card .q-value{font-size:20px;font-weight:700}
+
+  /* Decision box */
+  .decision-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+  .decision-box .decision-big{font-size:20px;font-weight:700;margin-bottom:8px;text-align:center;padding:12px;border-radius:8px}
+  .decision-go{background:rgba(52,211,153,.1);color:var(--green)}
+  .decision-nogo{background:rgba(248,113,113,.1);color:var(--red)}
+  .decision-conditional{background:rgba(251,191,36,.1);color:var(--yellow)}
+  .decision-box .decision-reason{font-size:13px;line-height:1.6;margin-top:12px;color:var(--muted)}
+  .decision-box .conditions{margin-top:12px}
+  .decision-box .conditions li{font-size:13px;margin-bottom:6px;color:var(--text)}
+
+  /* Sign-off */
+  .signoff-table{width:100%}
+  .signoff-table td:last-child{text-align:right}
+
+  .empty{text-align:center;color:var(--muted);padding:24px;font-size:13px}
+  .footer{margin-top:32px;text-align:center;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🏁 里程碑评审</h1>
+    <div class="meta">里程碑：<span id="milestoneId">-</span> · <span id="milestoneName">-</span> &nbsp;|&nbsp; 基线：<span id="baseline">-</span> &nbsp;|&nbsp; 评审日期：<span id="reviewDate">-</span></div>
+  </div>
+  <div><span id="decisionBadge" class="badge badge-yellow">待评审</span></div>
+</div>
+
+<!-- Progress ring -->
+<div class="progress-ring-wrap">
+  <div class="progress-ring">
+    <svg width="100" height="100"><circle cx="50" cy="50" r="42" stroke="var(--border)" stroke-width="8" fill="none"/><circle id="ringCircle" cx="50" cy="50" r="42" stroke="var(--green)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="263.9" stroke-dashoffset="263.9"/></svg>
+    <div class="pct c-text" id="ringPct">0%</div>
+  </div>
+  <div class="progress-ring-label">
+    <strong id="completionText">0 / 0 完成</strong><br>
+    <span style="color:var(--muted)">计划截止：<span id="deadline">-</span> &nbsp;|&nbsp; 实际：<span id="actualDate">-</span></span>
+  </div>
+</div>
+
+<!-- Delivery stats -->
+<div class="stats-row">
+  <div class="stat-card"><div class="num c-text" id="sPlanTotal">-</div><div class="lbl">计划任务</div></div>
+  <div class="stat-card"><div class="num c-green" id="sActualDone">-</div><div class="lbl">实际完成</div></div>
+  <div class="stat-card"><div class="num c-blue" id="sCompletion">-</div><div class="lbl">完成率</div></div>
+  <div class="stat-card"><div class="num" id="sSchedule">-</div><div class="lbl">进度</div><div class="sub" id="sScheduleSub"></div></div>
+  <div class="stat-card"><div class="num" id="sDefects">-</div><div class="lbl">缺陷数</div></div>
+</div>
+
+<!-- Delivered -->
+<div class="section">
+  <div class="section-title"><span class="icon">✅</span> 已交付需求</div>
+  <table id="deliveredTable"><thead><tr><th>Issue</th><th>标题</th><th>需求编号</th><th>验收</th><th>回归</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="deliveredEmpty">暂无交付项</div>
+</div>
+
+<!-- Incomplete -->
+<div class="section">
+  <div class="section-title"><span class="icon">⚠️</span> 未完成项</div>
+  <table id="incompleteTable"><thead><tr><th>Issue</th><th>标题</th><th>完成度</th><th>原因</th><th>后续处理</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="incompleteEmpty">全部完成 🎉</div>
+</div>
+
+<!-- Regression -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔍</span> 回归测试</div>
+  <table id="regressionTable"><thead><tr><th>轮次</th><th>执行日期</th><th>用例数</th><th>通过</th><th>失败</th><th>通过率</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="regressionEmpty">暂无回归数据</div>
+</div>
+
+<!-- Remaining issues -->
+<div class="section">
+  <div class="section-title"><span class="icon">🚨</span> 遗留问题</div>
+  <table id="issuesTable"><thead><tr><th>问题</th><th>严重程度</th><th>影响</th><th>计划处理</th></tr></thead><tbody></tbody></table>
+  <div class="empty" id="issuesEmpty">无遗留问题 🎉</div>
+</div>
+
+<!-- Quality -->
+<div class="section">
+  <div class="section-title"><span class="icon">📈</span> 质量指标</div>
+  <div class="quality-grid" id="qualityGrid"></div>
+</div>
+
+<!-- Decision -->
+<div class="section">
+  <div class="section-title"><span class="icon">🏁</span> 评审决策</div>
+  <div class="decision-box">
+    <div class="decision-big" id="decisionBig">待评审</div>
+    <div class="decision-reason" id="decisionReason">—</div>
+    <ol class="conditions" id="conditionsList"></ol>
+  </div>
+</div>
+
+<!-- Sign-off -->
+<div class="section">
+  <div class="section-title"><span class="icon">✍️</span> 签署</div>
+  <table class="signoff-table"><thead><tr><th>角色</th><th>姓名</th><th>决策</th><th>日期</th></tr></thead><tbody id="signoffBody"></tbody></table>
+</div>
+
+<div class="footer">项目推进者 · 里程碑评审 · 自动生成</div>
+
+<script>
+const DATA = /*__DATA__*/null/*__END__*/;
+function tag(cls,t){return `<span class="tag tag-${cls}">${t}</span>`}
+
+function render(d){
+  if(!d)return;
+  const m=d.milestone_review||d;
+
+  // Header
+  document.getElementById('milestoneId').textContent=m.milestone_id||'-';
+  document.getElementById('milestoneName').textContent=m.milestone_name||'-';
+  document.getElementById('baseline').textContent=m.baseline_version||'-';
+  document.getElementById('reviewDate').textContent=m.review_date||'-';
+
+  // Decision badge
+  const badgeEl=document.getElementById('decisionBadge');
+  const dm={go:['🟢 Go','badge-green'],no_go:['🔴 No-Go','badge-red'],conditional_go:['🟡 有条件 Go','badge-yellow'],pending:['⏳ 待评审','badge-yellow']};
+  const db=dm[m.decision]||dm.pending;
+  badgeEl.textContent=db[0];badgeEl.className='badge '+db[1];
+
+  // Progress ring
+  const total=m.plan_total||0,done=m.actual_done||0;
+  const pct=total?Math.round(done/total*100):0;
+  const circumference=2*Math.PI*42;
+  document.getElementById('ringCircle').style.strokeDashoffset=circumference*(1-pct/100);
+  document.getElementById('ringPct').textContent=pct+'%';
+  document.getElementById('completionText').textContent=`${done} / ${total} 完成`;
+  document.getElementById('deadline').textContent=m.deadline||'-';
+  document.getElementById('actualDate').textContent=m.actual_date||'-';
+
+  // Stats
+  document.getElementById('sPlanTotal').textContent=total;
+  document.getElementById('sActualDone').textContent=done;
+  document.getElementById('sCompletion').textContent=pct+'%';
+  const scheduleEl=document.getElementById('sSchedule');
+  if(m.schedule_status==='on_time'){scheduleEl.textContent='按时';scheduleEl.className='num c-green';}
+  else if(m.schedule_status==='delayed'){scheduleEl.textContent=`延期 ${m.delay_days||'?'}天`;scheduleEl.className='num c-red';document.getElementById('sScheduleSub').textContent='';}
+  else{scheduleEl.textContent=m.schedule_status||'-';scheduleEl.className='num c-text';}
+  document.getElementById('sDefects').textContent=m.defects??'-';
+  const defectEl=document.getElementById('sDefects');
+  if(m.defects>0)defectEl.className='num c-red';else if(m.defects===0)defectEl.className='num c-green';else defectEl.className='num c-text';
+
+  // Tables
+  function fill(tid,eid,rows,fn){
+    const tb=document.querySelector(`#${tid} tbody`),em=document.getElementById(eid);
+    if(rows&&rows.length){tb.innerHTML=rows.map(fn).join('');em.style.display='none';}
+    else{tb.innerHTML='';em.style.display='';}
+  }
+
+  fill('deliveredTable','deliveredEmpty',m.delivered,r=>{
+    const ac=r.acceptance==='full'?'tag-green':r.acceptance==='partial'?'tag-yellow':'tag-red';
+    const rg=r.regression==='pass'?'tag-green':'tag-red';
+    return `<tr><td>${tag('blue',r.issue)}</td><td>${r.title}</td><td>${tag('muted',r.req||'-')}</td><td>${tag(ac,r.acceptance==='full'?'✅ 全部通过':r.acceptance==='partial'?'⚠️ 部分':'❌')}</td><td>${tag(rg,r.regression==='pass'?'✅':'❌')}</td></tr>`;
+  });
+
+  fill('incompleteTable','incompleteEmpty',m.incomplete,r=>
+    `<tr><td>${tag('blue',r.issue)}</td><td>${r.title}</td><td>${r.completion||'-'}%</td><td>${r.reason||'-'}</td><td>${r.action||'-'}</td></tr>`);
+
+  fill('regressionTable','regressionEmpty',m.regression,r=>{
+    const rate=r.total?Math.round(r.pass/r.total*100):0;
+    const cls=rate>=100?'c-green':rate>=80?'c-yellow':'c-red';
+    return `<tr><td>第 ${r.round} 轮</td><td>${r.date||'-'}</td><td>${r.total||0}</td><td class="c-green">${r.pass||0}</td><td class="c-red">${r.fail||0}</td><td class="${cls}">${rate}%</td></tr>`;
+  });
+
+  fill('issuesTable','issuesEmpty',m.remaining_issues,r=>{
+    const sc={高:'red',中:'yellow',低:'blue'}[r.severity]||'muted';
+    return `<tr><td>${r.issue}</td><td>${tag(sc,r.severity)}</td><td>${r.impact||'-'}</td><td>${r.plan||'-'}</td></tr>`;
+  });
+
+  // Quality
+  const qg=document.getElementById('qualityGrid');
+  if(m.quality){
+    qg.innerHTML=Object.entries(m.quality).map(([k,v])=>{
+      const val=typeof v==='string'&&v.includes('✅')?'c-green':typeof v==='string'&&v.includes('❌')?'c-red':'c-text';
+      return `<div class="quality-card"><div class="q-label">${k}</div><div class="q-value ${val}">${v}</div></div>`;
+    }).join('');
+  }
+
+  // Decision
+  const decCls={go:'decision-go',no_go:'decision-nogo',conditional_go:'decision-conditional'};
+  const decText={go:'✅ Go — 批准发布',no_go:'❌ No-Go — 需修复',conditional_go:'⚠️ 有条件 Go',pending:'⏳ 待评审'};
+  document.getElementById('decisionBig').className='decision-big '+(decCls[m.decision]||'decision-conditional');
+  document.getElementById('decisionBig').textContent=decText[m.decision]||'待评审';
+  document.getElementById('decisionReason').textContent=m.decision_reason||'—';
+  if(m.conditions&&m.conditions.length){
+    document.getElementById('conditionsList').innerHTML=m.conditions.map(c=>`<li>${c}</li>`).join('');
+  }
+
+  // Sign-off
+  if(m.signoff&&m.signoff.length){
+    document.querySelector('#signoffBody').innerHTML=m.signoff.map(s=>
+      `<tr><td>${s.role}</td><td>${s.name}</td><td>${tag(s.decision==='Go'?'green':'yellow',s.decision)}</td><td>${s.date||'-'}</td></tr>`).join('');
+  }
+}
+render(DATA);
+</script>
+</body>
+</html>
