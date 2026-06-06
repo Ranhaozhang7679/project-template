@@ -1,23 +1,25 @@
-﻿# project-template
+# project-template
 
 > 项目需求管理模板仓库 — 由「需求护航者」维护
 
 ## 目录结构
 
-`
+```
 project-template/
-├── README.md                        ← 本文件
-├── docs/
-│   ├── prd/
-│   │   ├── project-onepager.md      ← 项目一页纸
-│   │   ├── requirements.md          ← 完整需求文档
-│   │   └── boards/
-│   │       └── board-unified.html   ← 需求看板（HTML）
-│   ├── change-requests/
-│   │   └── _template.md             ← 变更请求模板
-│   └── glossary.md                  ← 术语表
-└── templates/                        ← 原始模板（供参考）
-`
+  README.md                          -- 本文件
+  docs/
+    prd/
+      project-onepager.md            -- 项目一页纸
+      requirements.md                -- 完整需求文档
+      boards/
+        board-unified.html           -- 需求看板(HTML)
+    change-requests/
+      _template.md                   -- 变更请求模板
+    glossary.md                      -- 术语表
+  templates/
+    requirement-item.md              -- 需求条目模板
+    board-unified.html               -- 看板HTML模板
+```
 
 ## 版本管理规则
 
