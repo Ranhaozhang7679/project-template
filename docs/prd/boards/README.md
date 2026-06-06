@@ -7,3 +7,7 @@
 ## 文件说明
 
 - `board-unified.html` — 统一需求看板（按状态/优先级排列，可交互）
+
+## 说明
+- 原型区域中的页面和需求编号为示例，每个新项目由需求护航者根据实际需求替换。
+- 需求看板展示 PRD 状态（草稿/已锁定），项目看板（`templates/dashboard.html`）展示 Issue 执行状态（todo/in_progress/done），两者职责不同、不需要同步。
