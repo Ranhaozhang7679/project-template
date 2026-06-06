@@ -1,4 +1,4 @@
-﻿# Issue 模板
+# Issue 模板
 
 > 由项目推进者生成，下游开�?Agent 据此执行。结构化字段不可省略�?
 ```yaml
@@ -39,6 +39,8 @@ due_date: "YYYY-MM-DD"
 
 ## 验收标准
 
+> ⚠️ **规则**：验收标准直接来源于 PRD 对应需求（见 req_ref），不得自行增减。如有异议，先走需求澄清流程（Issue 标记 need_clarification，项目经理通知需求护航者介入）。
+>
 > 逐条引用 PRD 验收标准，下�?Agent 必须逐项自检�?
 - [ ] AC-1：_（引�?PRD 原文）_
 - [ ] AC-2：_
@@ -49,6 +51,18 @@ due_date: "YYYY-MM-DD"
 > 技术边界、不允许的做法、必须遵循的规范�?
 - 约束 1：_
 - 约束 2：_
+
+---
+
+## 技术上下文（项目经理填写，可选但强烈建议）
+
+> 辅助程序员快速理解技术环境，减少猜测。
+
+- **技术栈/框架**：{如 React + TypeScript / .NET 8 / Python FastAPI}
+- **涉及文件/模块路径**：{如 src/components/Login.tsx}
+- **接口契约**：{如 API: POST /api/auth/login, body: {username, password}}
+- **设计稿/原型链接**：{如有 UI 改动}
+- **边界条件/错误处理期望**：{如网络失败显示重试按钮、空数据展示占位图}
 
 ---
 
