@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目推进者 - 项目看板</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2a2d3a; --text: #e4e6ef; --muted: #8b8fa3;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171; --blue: #60a5fa; --purple: #a78bfa; --cyan: #22d3ee;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header .meta { font-size: 13px; color: var(--muted); }
+  .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .health-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .health-green { background: rgba(52,211,153,.15); color: var(--green); }
+  .health-yellow { background: rgba(251,191,36,.15); color: var(--yellow); }
+  .health-red { background: rgba(248,113,113,.15); color: var(--red); }
+
+  /* Mode toggle */
+  .mode-toggle { display: inline-flex; background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .mode-btn { padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all .2s; }
+  .mode-btn.active { background: var(--blue); color: #fff; }
+  .mode-btn:hover:not(.active) { color: var(--text); }
+
+  /* Stats Row */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 24px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+  .stat-card .number { font-size: 26px; font-weight: 700; }
+  .stat-card .label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .stat-card .delta { font-size: 11px; margin-top: 2px; }
+  .delta-up { color: var(--green); } .delta-down { color: var(--red); } .delta-flat { color: var(--muted); }
+  .stat-done .number { color: var(--green); } .stat-progress .number { color: var(--blue); }
+  .stat-todo .number { color: var(--muted); } .stat-blocked .number { color: var(--red); }
+  .stat-overdue .number { color: var(--yellow); } .stat-total .number { color: var(--text); }
+
+  /* Sections */
+  .section { margin-bottom: 24px; }
+  .section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-title .icon { font-size: 18px; }
+
+  /* Milestones */
+  .milestone-list { display: flex; flex-direction: column; gap: 10px; }
+  .milestone-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .milestone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .milestone-name { font-weight: 600; font-size: 14px; }
+  .milestone-deadline { font-size: 12px; color: var(--muted); }
+  .progress-bar-bg { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+  .progress-bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+  .progress-bar-fill.green { background: var(--green); } .progress-bar-fill.blue { background: var(--blue); }
+  .progress-bar-fill.yellow { background: var(--yellow); } .progress-bar-fill.red { background: var(--red); }
+  .progress-label { font-size: 12px; color: var(--muted); }
+  .risk-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .risk-none { background: rgba(52,211,153,.1); color: var(--green); } .risk-low { background: rgba(96,165,250,.1); color: var(--blue); }
+  .risk-medium { background: rgba(251,191,36,.1); color: var(--yellow); } .risk-high { background: rgba(248,113,113,.1); color: var(--red); }
+
+  /* Kanban */
+  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 800px) { .kanban { grid-template-columns: repeat(2, 1fr); } }
+  .kanban-col { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-height: 160px; }
+  .kanban-col-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .kanban-count { background: var(--border); padding: 2px 8px; border-radius: 10px; font-size: 11px; color: var(--muted); }
+  .task-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 12px; cursor: default; transition: border-color .2s; }
+  .task-card:hover { border-color: var(--blue); }
+  .task-card .task-id { font-weight: 600; color: var(--blue); margin-bottom: 4px; }
+  .task-card .task-title { color: var(--text); margin-bottom: 6px; line-height: 1.4; }
+  .task-card .task-meta { color: var(--muted); font-size: 11px; display: flex; justify-content: space-between; }
+  .priority-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  .p0 { background: var(--red); } .p1 { background: var(--yellow); } .p2 { background: var(--blue); } .p3 { background: var(--muted); }
+
+  /* Blockers */
+  .blocker-list { display: flex; flex-direction: column; gap: 8px; }
+  .blocker-item { background: var(--card); border-left: 3px solid var(--red); border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: 13px; }
+  .blocker-item .blocker-title { font-weight: 600; margin-bottom: 4px; }
+  .blocker-item .blocker-detail { color: var(--muted); font-size: 12px; }
+
+  /* Info grid */
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .info-card .info-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .info-card .info-value { font-size: 20px; font-weight: 700; }
+  .pass { color: var(--green); } .fail { color: var(--red); } .running { color: var(--yellow); }
+
+  /* Tables (weekly mode) */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th, .data-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; background: var(--card); }
+  .data-table tr:hover td { background: rgba(96,165,250,.04); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-green { background: rgba(52,211,153,.12); color: var(--green); } .tag-red { background: rgba(248,113,113,.12); color: var(--red); }
+  .tag-yellow { background: rgba(251,191,36,.12); color: var(--yellow); } .tag-blue { background: rgba(96,165,250,.12); color: var(--blue); }
+  .tag-muted { background: rgba(139,143,163,.12); color: var(--muted); }
+
+  /* Decision list */
+  .decision-list { display: flex; flex-direction: column; gap: 8px; }
+  .decision-item { background: var(--card); border-left: 3px solid var(--yellow); border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: 13px; }
+
+  .empty { text-align: center; color: var(--muted); padding: 24px; font-size: 13px; }
+  .footer { margin-top: 32px; text-align: center; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📋 项目看板</h1>
+    <div class="meta">基线版本：<span id="baseline">-</span> &nbsp;|&nbsp; 更新时间：<span id="updateTime">-</span></div>
+  </div>
+  <div class="header-right">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeLive" onclick="setMode('live')">📊 实时</button>
+      <button class="mode-btn" id="modeWeekly" onclick="setMode('weekly')">📰 周报</button>
+    </div>
+    <span id="healthBadge" class="health-badge health-green">🟢 良好</span>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row" id="statsRow">
+  <div class="stat-card stat-total"><div class="number" id="statTotal">0</div><div class="label">总任务</div><div class="delta delta-flat" id="dTotal"></div></div>
+  <div class="stat-card stat-done"><div class="number" id="statDone">0</div><div class="label">已完成</div><div class="delta delta-flat" id="dDone"></div></div>
+  <div class="stat-card stat-progress"><div class="number" id="statProgress">0</div><div class="label">进行中</div><div class="delta delta-flat" id="dProgress"></div></div>
+  <div class="stat-card stat-todo"><div class="number" id="statTodo">0</div><div class="label">待开始</div><div class="delta delta-flat" id="dTodo"></div></div>
+  <div class="stat-card stat-blocked"><div class="number" id="statBlocked">0</div><div class="label">阻塞</div><div class="delta delta-flat" id="dBlocked"></div></div>
+  <div class="stat-card stat-overdue"><div class="number" id="statOverdue">0</div><div class="label">延期</div><div class="delta delta-flat" id="dOverdue"></div></div>
+</div>
+
+<!-- LIVE MODE sections -->
+<div id="liveSections">
+
+  <!-- Milestones -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🏁</span> 里程碑进度</div>
+    <div class="milestone-list" id="milestoneList"><div class="empty">暂无里程碑数据</div></div>
+  </div>
+
+  <!-- Kanban -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📌</span> 任务看板</div>
+    <div class="kanban" id="kanban">
+      <div class="kanban-col"><div class="kanban-col-title">📋 待开始 <span class="kanban-count" id="kanbanTodoCount">0</span></div><div id="kanbanTodo"></div></div>
+      <div class="kanban-col"><div class="kanban-col-title">🔄 进行中 <span class="kanban-count" id="kanbanProgressCount">0</span></div><div id="kanbanProgress"></div></div>
+      <div class="kanban-col"><div class="kanban-col-title">🚫 阻塞 <span class="kanban-count" id="kanbanBlockedCount">0</span></div><div id="kanbanBlocked"></div></div>
+      <div class="kanban-col"><div class="kanban-col-title">✅ 已完成 <span class="kanban-count" id="kanbanDoneCount">0</span></div><div id="kanbanDone"></div></div>
+    </div>
+  </div>
+
+  <!-- Blockers -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🚨</span> 阻塞与延期</div>
+    <div class="blocker-list" id="blockerList"><div class="empty">暂无阻塞项 🎉</div></div>
+  </div>
+
+  <!-- PR & Regression -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🔀</span> PR 状态 & 回归</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="info-label">开放 PR</div><div class="info-value" id="prOpen">0</div></div>
+      <div class="info-card"><div class="info-label">可审查</div><div class="info-value" id="prReviewable">0</div></div>
+      <div class="info-card"><div class="info-label">CI 失败</div><div class="info-value" style="color:var(--red)" id="prCiFail">0</div></div>
+      <div class="info-card"><div class="info-label">停滞 PR</div><div class="info-value" style="color:var(--yellow)" id="prStale">0</div></div>
+      <div class="info-card"><div class="info-label">回归测试</div><div class="info-value" id="regressionResult">-</div></div>
+      <div class="info-card"><div class="info-label">通过率</div><div class="info-value" id="regressionRate">-</div></div>
+    </div>
+  </div>
+
+</div><!-- /liveSections -->
+
+<!-- WEEKLY MODE sections -->
+<div id="weeklySections" style="display:none">
+
+  <!-- Completed this week -->
+  <div class="section">
+    <div class="section-title"><span class="icon">✅</span> 本周完成</div>
+    <table class="data-table" id="wDoneTable"><thead><tr><th>Issue</th><th>标题</th><th>里程碑</th><th>负责人</th><th>备注</th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="wDoneEmpty">本周无完成任务</div>
+  </div>
+
+  <!-- In progress -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🔄</span> 进行中</div>
+    <table class="data-table" id="wProgressTable"><thead><tr><th>Issue</th><th>标题</th><th>进度</th><th>阻碍</th><th>预计完成</th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="wProgressEmpty">无进行中任务</div>
+  </div>
+
+  <!-- Milestones (compact) -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🏁</span> 里程碑进度</div>
+    <div class="milestone-list" id="wMilestoneList"><div class="empty">暂无里程碑数据</div></div>
+  </div>
+
+  <!-- PR Status -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🔀</span> PR 状态</div>
+    <table class="data-table" id="wPRTable"><thead><tr><th>PR</th><th>标题</th><th>作者</th><th>CI</th><th>停滞</th><th>状态</th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="wPREmpty">无开放 PR</div>
+  </div>
+
+  <!-- Blockers -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🚨</span> 风险与阻塞</div>
+    <div class="blocker-list" id="wBlockerList"><div class="empty">暂无阻塞项 🎉</div></div>
+  </div>
+
+  <!-- Next week plan -->
+  <div class="section">
+    <div class="section-title"><span class="icon">⏭️</span> 下周计划</div>
+    <table class="data-table" id="wNextTable"><thead><tr><th>优先级</th><th>任务</th><th>里程碑</th><th>负责人</th><th>目标</th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="wNextEmpty">待规划</div>
+  </div>
+
+  <!-- Decisions needed -->
+  <div class="section">
+    <div class="section-title"><span class="icon">📢</span> 需要决策</div>
+    <div class="decision-list" id="wDecisionList"><div class="empty">暂无待决策事项</div></div>
+  </div>
+
+</div><!-- /weeklySections -->
+
+<div class="footer">项目推进者 · 自动生成 · 数据驱动交付</div>
+
+<script>
+const DASHBOARD_DATA = /*__DATA__*/null/*__END__*/;
+let currentMode = 'live';
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeLive').className = 'mode-btn' + (mode === 'live' ? ' active' : '');
+  document.getElementById('modeWeekly').className = 'mode-btn' + (mode === 'weekly' ? ' active' : '');
+  document.getElementById('liveSections').style.display = mode === 'live' ? '' : 'none';
+  document.getElementById('weeklySections').style.display = mode === 'weekly' ? '' : 'none';
+}
+
+function tag(cls, t) { return '<span class="tag tag-' + cls + '">' + t + '</span>'; }
+
+function setDelta(id, cur, prev, invert) {
+  const el = document.getElementById(id);
+  if (prev == null || cur == null) { el.textContent = ''; return; }
+  const d = cur - prev;
+  if (d === 0) { el.textContent = '—'; el.className = 'delta delta-flat'; return; }
+  const sign = d > 0 ? '+' : '';
+  const good = invert ? d < 0 : d > 0;
+  el.textContent = sign + d;
+  el.className = 'delta ' + (good ? 'delta-up' : 'delta-down');
+}
+
+function fillTable(tid, eid, rows, fn) {
+  const tb = document.querySelector('#' + tid + ' tbody'), em = document.getElementById(eid);
+  if (rows && rows.length) { tb.innerHTML = rows.map(fn).join(''); em.style.display = 'none'; }
+  else { tb.innerHTML = ''; em.style.display = ''; }
+}
+
+function render(data) {
+  if (!data) return;
+  const d = data.dashboard || data;
+
+  // Header
+  document.getElementById('baseline').textContent = d.baseline_version || '-';
+  document.getElementById('updateTime').textContent = d.updated_at || '-';
+
+  const healthEl = document.getElementById('healthBadge');
+  const hm = { green: ['🟢 良好', 'health-green'], yellow: ['🟡 注意', 'health-yellow'], red: ['🔴 风险', 'health-red'] };
+  const h = hm[d.health] || hm.green;
+  healthEl.textContent = h[0]; healthEl.className = 'health-badge ' + h[1];
+
+  // Stats
+  const s = d.summary || {};
+  const sp = d.summary_prev || {};
+  document.getElementById('statTotal').textContent = s.total ?? '-';
+  document.getElementById('statDone').textContent = s.done ?? '-';
+  document.getElementById('statProgress').textContent = s.in_progress ?? '-';
+  document.getElementById('statTodo').textContent = s.todo ?? '-';
+  document.getElementById('statBlocked').textContent = s.blocked ?? '-';
+  document.getElementById('statOverdue').textContent = s.overdue ?? '-';
+  setDelta('dTotal', s.total, sp.total);
+  setDelta('dDone', s.done, sp.done);
+  setDelta('dProgress', s.in_progress, sp.in_progress);
+  setDelta('dTodo', s.todo, sp.todo);
+  setDelta('dBlocked', s.blocked, sp.blocked, true);
+  setDelta('dOverdue', s.overdue, sp.overdue, true);
+
+  // If weekly data exists, switch to weekly mode by default
+  if (d.weekly) setMode('weekly');
+
+  // ──── LIVE MODE ────
+
+  // Milestones
+  const renderMilestones = (containerId) => {
+    const ml = document.getElementById(containerId);
+    if (d.milestones && d.milestones.length) {
+      ml.innerHTML = d.milestones.map(m => {
+        const pct = m.total ? Math.round(m.done / m.total * 100) : 0;
+        const bc = m.status === 'completed' ? 'green' : m.risk === 'high' ? 'red' : m.risk === 'medium' ? 'yellow' : 'blue';
+        const sm = { not_started: '未开始', in_progress: '进行中', completed: '已完成', blocked: '阻塞' };
+        const rm = { none: '无风险', low: '低风险', medium: '中风险', high: '高风险' };
+        return '<div class="milestone-item"><div class="milestone-header"><span class="milestone-name">' + m.id + ' · ' + (m.name || '') + '</span><span><span class="risk-tag risk-' + (m.risk || 'none') + '">' + (rm[m.risk] || '无风险') + '</span> <span class="milestone-deadline">截止 ' + (m.deadline || '-') + '</span></span></div><div class="progress-bar-bg"><div class="progress-bar-fill ' + bc + '" style="width:' + pct + '%"></div></div><div class="progress-label">' + (m.done || 0) + '/' + (m.total || 0) + ' 完成（' + pct + '%）· ' + (sm[m.status] || m.status) + '</div></div>';
+      }).join('');
+    }
+  };
+  renderMilestones('milestoneList');
+  renderMilestones('wMilestoneList');
+
+  // Kanban
+  if (d.issues) {
+    const cols = { todo: [], in_progress: [], blocked: [], done: [] };
+    d.issues.forEach(i => { (cols[i.status] || cols.todo).push(i); });
+    const rc = i => '<div class="task-card"><div class="task-id"><span class="priority-dot p' + (i.priority || 'p2').replace('P', '').toLowerCase() + '"></span>' + i.issue_id + '</div><div class="task-title">' + i.title + '</div><div class="task-meta"><span>' + (i.milestone || '') + '</span><span>' + (i.assignee || '未分配') + '</span></div></div>';
+    ['todo', 'in_progress', 'blocked', 'done'].forEach(k => {
+      const n = { todo: 'Todo', in_progress: 'Progress', blocked: 'Blocked', done: 'Done' };
+      document.getElementById('kanban' + n[k] + 'Count').textContent = cols[k].length;
+      document.getElementById('kanban' + n[k]).innerHTML = cols[k].length ? cols[k].map(rc).join('') : '<div class="empty" style="padding:12px;font-size:11px">无</div>';
+    });
+  }
+
+  // Blockers (live)
+  const bl = document.getElementById('blockerList');
+  if (d.blockers && d.blockers.length) {
+    bl.innerHTML = d.blockers.map(b => '<div class="blocker-item"><div class="blocker-title">' + b.item + ' · ' + (b.type === 'overdue' ? '延期' : '阻塞') + '</div><div class="blocker-detail">' + b.reason + ' · 影响：' + b.impact + ' · ' + (b.assignee || '') + ' · 预计 ' + (b.eta || '未知') + '</div></div>').join('');
+  }
+
+  // PR & Regression
+  if (d.pr_status) {
+    document.getElementById('prOpen').textContent = d.pr_status.open ?? '-';
+    document.getElementById('prReviewable').textContent = d.pr_status.reviewable ?? '-';
+    document.getElementById('prCiFail').textContent = d.pr_status.ci_failed ?? '-';
+    document.getElementById('prStale').textContent = d.pr_status.stale ?? '-';
+  }
+  if (d.regression) {
+    const rM = { pass: ['✅ 通过', 'pass'], fail: ['❌ 失败', 'fail'], running: ['🔄 进行中', 'running'] };
+    const r = rM[d.regression.result] || ['-', ''];
+    document.getElementById('regressionResult').textContent = r[0];
+    document.getElementById('regressionResult').className = 'info-value ' + r[1];
+    document.getElementById('regressionRate').textContent = d.regression.pass_rate || '-';
+    document.getElementById('regressionRate').className = 'info-value ' + (d.regression.result === 'pass' ? 'pass' : '');
+  }
+
+  // ──── WEEKLY MODE ────
+  const w = d.weekly || {};
+
+  // Completed this week
+  fillTable('wDoneTable', 'wDoneEmpty', w.completed, r =>
+    '<tr><td>' + tag('blue', r.issue) + '</td><td>' + r.title + '</td><td>' + tag('muted', r.milestone || '-') + '</td><td>' + (r.assignee || '-') + '</td><td>' + (r.note || '-') + '</td></tr>');
+
+  // In progress
+  fillTable('wProgressTable', 'wProgressEmpty', w.in_progress, r =>
+    '<tr><td>' + tag('blue', r.issue) + '</td><td>' + r.title + '</td><td>' + (r.progress || '-') + '%</td><td>' + (r.blocker || '-') + '</td><td>' + (r.due || '-') + '</td></tr>');
+
+  // Weekly blockers
+  const wbl = document.getElementById('wBlockerList');
+  const wRisks = w.risks || d.blockers;
+  if (wRisks && wRisks.length) {
+    wbl.innerHTML = wRisks.map(b => {
+      const tc = { 阻塞: 'red', 延期: 'yellow', 风险: 'blue' }[b.type] || 'muted';
+      return '<div class="blocker-item"><div class="blocker-title">' + tag(tc, b.type) + ' ' + (b.item || b.issue || '') + '</div><div class="blocker-detail">' + (b.reason || b.desc || '') + ' · 影响：' + (b.impact || '-') + '</div></div>';
+    }).join('');
+  }
+
+  // PR table
+  fillTable('wPRTable', 'wPREmpty', w.prs, r => {
+    const ci = r.ci === 'pass' ? '🟢' : '🔴';
+    return '<tr><td>' + tag('blue', r.pr) + '</td><td>' + r.title + '</td><td>' + (r.author || '-') + '</td><td>' + ci + '</td><td>' + (r.stale != null ? r.stale + '天' : '-') + '</td><td>' + tag('muted', r.status || '-') + '</td></tr>';
+  });
+
+  // Next week plan
+  fillTable('wNextTable', 'wNextEmpty', w.next_week, r => {
+    const pc = { P0: 'red', P1: 'yellow', P2: 'blue', P3: 'muted' }[r.priority] || 'muted';
+    return '<tr><td>' + tag(pc, r.priority) + '</td><td>' + r.task + '</td><td>' + tag('muted', r.milestone || '-') + '</td><td>' + (r.assignee || '-') + '</td><td>' + (r.goal || '-') + '</td></tr>';
+  });
+
+  // Decisions
+  const dl = document.getElementById('wDecisionList');
+  if (w.decisions && w.decisions.length) {
+    dl.innerHTML = w.decisions.map((d, i) => '<div class="decision-item">' + (i + 1) + '. ' + d + '</div>').join('');
+  }
+}
+
+render(DASHBOARD_DATA);
+</script>
+</body>
+</html>
