@@ -1,11 +1,9 @@
-# 项目仪表盘数据
-
-> 结构化数据源，HTML 仪表盘从此文件读取。项目推进者每次更新时同步更新此文件。
-
+# 项目仪表盘数�?
+> 结构化数据源，HTML 仪表盘从此文件读取。项目推进者每次更新时同步更新此文件�?
 ```yaml
 dashboard:
   updated_at: "YYYY-MM-DD HH:MM"
-  baseline_version: "V?.?"
+  baseline_version: "VX.Y"
   health: "green|yellow|red"
 
   summary:
