@@ -1,0 +1,24 @@
+{
+  "projectName": "{项目名称}",
+  "currentPhase": "{如：需求捕获 / 需求已锁定 / 任务拆分 / 开发中}",
+  "currentVersion": "{如：prd-v1.0}",
+  "agents": {
+    "需求护航者": {
+      "status": "{空闲 / 工作中 / 等待确认}",
+      "lastAction": "{最近完成的动作}",
+      "lastUpdate": "{YYYY-MM-DD}"
+    },
+    "项目经理": {
+      "status": "{空闲 / 等待上游 / 工作中}",
+      "lastAction": "{最近完成的动作}",
+      "lastUpdate": "{YYYY-MM-DD}"
+    },
+    "程序员": {
+      "status": "{空闲 / 等待上游 / 工作中}",
+      "lastAction": "{最近完成的动作}",
+      "lastUpdate": "{YYYY-MM-DD}"
+    }
+  },
+  "repoUrl": "{GitHub 仓库地址}",
+  "latestTag": "{如 prd-v1.0}"
+}
