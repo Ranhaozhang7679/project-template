@@ -1,0 +1,16 @@
+{
+  "current": "{如 prd-v1.0}",
+  "repoUrl": "{GitHub 仓库地址}",
+  "versions": {
+    "prd-v1.0": {
+      "date": "{YYYY-MM-DD}",
+      "tag": "prd-v1.0",
+      "commit": "{git commit hash}",
+      "lockedBy": "需求护航者",
+      "summary": "{版本摘要}",
+      "requirements": 0,
+      "changeRequests": [],
+      "affectedTasks": []
+    }
+  }
+}
